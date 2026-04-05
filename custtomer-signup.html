@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4A7CFF;
+      --button: #28E0FF;
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --ok-bg: #ecfdf5;
+      --ok-text: #065f46;
+      --err-bg: #fef2f2;
+      --err-text: #991b1b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 32px 18px 60px;
+    }
+    .page-loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(74,124,255,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .page-error {
+      display: none;
+      background: var(--err-bg);
+      color: var(--err-text);
+      border-radius: 14px;
+      padding: 24px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .card {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.07);
+    }
+    .stall-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(74,124,255,0.08);
+      border: 1px solid rgba(74,124,255,0.2);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    .stall-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    form { display: grid; gap: 16px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+    .field input {
+      width: 100%;
+      font-family: 'DM Sans', Arial, sans-serif;
+      font-size: 15px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: var(--primary); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .check-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .check-wrap input[type="checkbox"] {
+      width: 18px; height: 18px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .check-wrap span {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'DM Sans', Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      background: var(--primary);
+      margin-top: 4px;
+    }
+    .submit-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .submit-btn:active:not(:disabled) { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .status.show { display: block; }
+    .status.ok { background: var(--ok-bg); color: var(--ok-text); }
+    .status.err { background: var(--err-bg); color: var(--err-text); }
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+    .success-icon { font-size: 52px; margin-bottom: 16px; }
+    .success-screen h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .success-screen p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+    .footer-note {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #c0c4ce;
+    }
+    @media (max-width: 480px) {
+      .row { grid-template-columns: 1fr; }
+      .card { padding: 24px 18px; }
+      h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="page-loader" id="pageLoader">
+      <div class="spinner"></div>
+      <span>Loading...</span>
+    </div>
+    <div class="page-error" id="pageError"></div>
+    <div class="card" id="mainCard">
+      <div class="stall-badge" id="stallBadge">Loading...</div>
+      <h1 id="pageTitle">Join our list</h1>
+      <p class="sub" id="pageSub">Sign up for updates, offers and market news.</p>
+      <div id="formWrap">
+        <form id="signupForm">
+          <div class="row">
+            <div class="field">
+              <label for="first_name">First name *</label>
+              <input id="first_name" type="text" placeholder="Sarah" required>
+            </div>
+            <div class="field">
+              <label for="last_name">Last name</label>
+              <input id="last_name" type="text" placeholder="Jones">
+            </div>
+          </div>
+          <div class="field">
+            <label for="email">Email address *</label>
+            <input id="email" type="email" placeholder="sarah@example.com" required>
+          </div>
+          <div class="field">
+            <label for="interests">What are you interested in?</label>
+            <input id="interests" type="text" placeholder="e.g. coffee, gift boxes, new arrivals">
+          </div>
+          <label class="check-wrap">
+            <input id="consent" type="checkbox" checked>
+            <span id="consentText">I agree to receive marketing emails. You can unsubscribe any time.</span>
+          </label>
+          <button class="submit-btn" id="submitBtn" type="submit">Sign me up →</button>
+        </form>
+        <div id="statusBox" class="status"></div>
+      </div>
+      <div class="success-screen" id="successScreen">
+        <div class="success-icon">🎉</div>
+        <h2>You're on the list!</h2>
+        <p id="successMsg">Thanks for signing up. Look out for offers and updates from us soon.</p>
+      </div>
+      <div class="footer-note">Powered by MarketFlow · Nexa Glow Systems</div>
+    </div>
+  </div>
+
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbym5zdu5d8t0a0dxPPCIA5JN38cTfALV4bRXepzRcFD_TSdkglNc9Kj7oMqJsYeT-FF/exec';
+    const urlParams = new URLSearchParams(window.location.search);
+    const stallSlug = (urlParams.get('stall') || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+    async function init() {
+      if (!stallSlug) {
+        showPageError('No stall specified in URL. Please use a valid signup link.');
+        return;
+      }
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?api=getSignupPageData&stall=' + encodeURIComponent(stallSlug));
+        const json = await res.json();
+        if (!json.success || !json.data) {
+          showPageError(json.error || 'Stall not found. Please check your link.');
+          return;
+        }
+        applyBranding(json.data);
+        showCard();
+      } catch (err) {
+        showPageError('Failed to load signup page. Please try again shortly.');
+        console.error(err);
+      }
+    }
+
+    function applyBranding(data) {
+      if (data.primary_color) document.documentElement.style.setProperty('--primary', data.primary_color);
+      if (data.button_color) {
+        document.getElementById('submitBtn').style.background = data.button_color;
+        document.getElementById('submitBtn').style.color = '#fff';
+      }
+      document.getElementById('stallBadge').textContent = data.brand_name || stallSlug;
+      document.getElementById('pageTitle').textContent = data.page_title || 'Join our list';
+      document.getElementById('pageSub').textContent = data.page_subtitle || 'Sign up for updates and offers.';
+      document.getElementById('consentText').textContent = data.consent_text || 'I agree to receive marketing emails. You can unsubscribe any time.';
+      document.title = (data.brand_name || 'Sign Up') + ' — MarketFlow';
+      document.getElementById('successMsg').textContent = 'Thanks for signing up to ' + (data.brand_name || 'our list') + '. Look out for offers and updates from us soon.';
+    }
+
+    document.getElementById('signupForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      clearStatus();
+
+      const firstName = document.getElementById('first_name').value.trim();
+      const email     = document.getElementById('email').value.trim();
+      const consent   = document.getElementById('consent').checked;
+
+      if (!firstName) return showError('First name is required.');
+      if (!email)     return showError('Email address is required.');
+      if (!consent)   return showError('Please tick the consent box to continue.');
+
+      setLoading(true);
+
+      const params = new URLSearchParams({
+        api:        'signup',
+        stall_slug: stallSlug,
+        first_name: firstName,
+        last_name:  document.getElementById('last_name').value.trim(),
+        email:      email,
+        interests:  document.getElementById('interests').value.trim(),
+        consent:    'true',
+        ref:        urlParams.get('ref') || ''
+      });
+
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?' + params.toString());
+        const json = await res.json();
+        setLoading(false);
+        if (json.success) {
+          showSuccessScreen();
+        } else {
+          showError(json.error || 'Something went wrong. Please try again.');
+        }
+      } catch (err) {
+        setLoading(false);
+        showError('Something went wrong. Please try again.');
+        console.error(err);
+      }
+    });
+
+    function showCard() {
+      document.getElementById('pageLoader').style.display = 'none';
+      document.getElementById('mainCard').style.display = 'block';
+    }
+    function showPageError(msg) {
+      document.getElementById('pageLoader').style.display = 'none';
+      const el = document.getElementById('pageError');
+      el.style.display = 'block';
+      el.innerHTML = '<strong>Unable to load page</strong><br>' + msg;
+    }
+    function showSuccessScreen() {
+      document.getElementById('formWrap').style.display = 'none';
+      document.getElementById('statusBox').style.display = 'none';
+      document.getElementById('successScreen').style.display = 'block';
+    }
+    function setLoading(on) {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = on;
+      btn.textContent = on ? 'Signing up...' : 'Sign me up →';
+    }
+    function showError(msg) {
+      const el = document.getElementById('statusBox');
+      el.className = 'status show err';
+      el.textContent = msg;
+    }
+    function clearStatus() {
+      const el = document.getElementById('statusBox');
+      el.className = 'status';
+      el.textContent = '';
+    }
+
+    init();
+  </script>
+</body>
+</html>
